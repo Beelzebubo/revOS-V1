@@ -149,8 +149,117 @@ const Apps = {
       DEVLOG.forEach(e => {
         const art = el('article', 'article');
         art.appendChild(el('h3',null, e.title));
-      })
+        art.appendChild(el('time', null, e.date));
+        const body = el('div', 'body');
+        body.textContent = e.text;
+        art.appendChild(body);
+        feed.appendChild(art);
+      });
+      root.appendChild(feed);
+      return root;
+    }   
+  },
+
+  comite: {
+    id: 'comite', name: 'Le Comité de Salut Public', icon: '📜', w: '480', h: '380',
+    build (){
+      const KEY = 'revos.decrets';
+      let items = [];
+      try { items = JSON.parse(localStorage.getItem(KEY)) || [];} catch (e) { items = [];}
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead', '<h2>LE OMITÉ DE SALUT PUBLIC</h2><span>Décrets à exécuter • cochez pour exécuter</span>'));
+      const list= el('ul', 'decretes');
+      const save = () => {
+        try { localStorage.setItem(KEY, JSON.stringify(items));} catch (e) {}
+        window.dispatchEvent(new CustomEvent('statschange'));
+      };
+      const render = () => {
+        list.innerHTML = '';
+        items.forEach((t,i) => {
+          const li = el('li', 'decret' + (t.don ? 't.done' : ''));
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.checked = !!t.done;
+          cb.addEventListener('change', () => { t.done = cb.checked; save(); render(); });
+          const del = el('button', 'icon', '🗑');
+          del.addEventListener('click', () => { items.splice(i, 1); save(); render(); });
+          list.appendChild(li);
+        });
+      };
+      const form = el('dov', 'decret-form');
+      const input = document.createElement('input');
+      input.placeholder = 'Nouveau décret...';
+      const btn = el('button', 'decret-add', 'Décréter');
+      btn.addEventListener('click', () =>{
+        const t = input.value.trim();
+        if (!t) return;
+        items.push({ text: t, done: false});
+        input.value = '';
+        save(); render();
+      });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click();});
+      form.append(input, btn);
+      root.append(form, list);
+      render();
+      return root;
     }
-    
+  },
+  
+  assignat: {
+    id: 'assignat', name: 'L\'Assignat', icon: '🪙', w: 460, h: 340,
+    build(){
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead', '<h2>L\'Assignat</h2><span>Registre national des statistiques</span>'));
+      const gird = el('div', 'stat');
+      const row = (label, val) => {
+        const r = el('div', 'stat');
+        r.append(el('span', null, 'label'), el('span', 'stat-val', val));
+        return r;
+      };
+      const bastille = Math.floor((Date.now() - Date.UTC(1789, 6, 14)) / 86400000);
+      const paint = () => {
+        let done = 0;
+        try { done = (JSON.parse(localStorage.getItem('revos.decrets')) || []).filter(t => t.done).length; } catch (e){}
+        grid.innerHTML = '';
+        grid.append(
+          row('Jours depuis le prise de la Bastille', bastille.toLocaleString()),
+          row('Fenétres ouvertes', OS.stats.windowOpened),
+          row('Fichiers en circulation', FS.count('file')),
+          row('Décrets exécutés', done)
+        );
+      };
+      paint();
+      window.addEventListener('statchange',paint);
+      root.appendChild(grid);
+      return root;
+    }
+  },
+  
+  etats: {
+    id: 'etats', name: 'Les États Généraux', icon: '🏛️', w: 580, h: 400,
+    build(){
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead', '<h2>LES ÉTATS GÉNÉRAUX</h2><span>Profil du citoyen • trois ordres, um mēme peuple</span>'));
+      const row = el('div', 'estate');
+      const estate = (title, emoji, lines) => {
+        const c = el('div', 'estate');
+        c.appendChild(el('h3', null, emoji + ' ' + title));
+        const ul = el('ul');
+        lines.forEach(l => ul.appendChild(el('li', null, l)));
+        c.appendChild(ul);
+        return c;
+      };
+      row.append(
+        estate('Clergé — Éducation', '📚', [' École des lettres et des chiffres', 'Baccalauréat général', 'Apprenti-condeur autodidacte']),
+        estate('Noblesse — Compétences', '⚔️', ['HTML, CSS, JavaScript', 'Esprit critique et satire', 'Organisation de comités']),
+        estate('Tiers   État — Passions', '🥖', ['Histoire révolutionnaire', 'Jeux et jams créatives', 'Le partage de code libre'])
+      );
+      root.appendChild(row);
+      return root;
+    }
+  },
+  dossier: {
+    id: 'dossier', name: 'Le Dossier', icon: '📁', w: 640, h: 420,
+    build() {
+      return FileManager.build();}
   }
-}
+};

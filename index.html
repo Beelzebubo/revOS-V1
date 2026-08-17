@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>revOS — Citizen Beelzebubo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='33.3' height='100' fill='%231e4f8a'/><rect x='33.3' width='33.4' height='100' fill='%23f4efe6'/><rect x='66.6' width='33.4' height='100' fill='%23b5342a'/></svg>">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+:root{
+  --bg:#efe6d5; --fg:#211c16; --win:#fbf7ec; --border:#211c16;
+  --red:#b5342a; --redd:#9c2417; --blue:#1e4f8a; --gold:#c9a227;
+  --shadow:4px 4px 0 rgba(33,28,22,.28);
+  --serif:Georgia,'Times New Roman',serif; --mono:'Courier New',monospace;
+}
+body.dark{
+  --bg:#16120d; --fg:#e9e2d2; --win:#241d13; --border:#c9b98a;
+  --shadow:5px 5px 0 rgba(0,0,0,.6);
+}
+body{font-family:var(--serif)}
+
+/* Boot */
+#boot{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:#f4efe6;background:radial-gradient(circle at 50% 38%,#8a1f18,#4a0d0a 70%);
+  transition:opacity .8s}
+#boot.done{opacity:0;pointer-events:none}
+.boot-inner h1{font-size:4rem;letter-spacing:.3em;margin:0;padding-bottom:16px;
+  text-shadow:0 4px 0 #000,0 8px 24px rgba(0,0,0,.5);position:relative}
+.boot-inner h1::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:0;
+  width:85%;height:4px;border-radius:2px;
+  background:linear-gradient(90deg,var(--blue),#f4efe6 50%,var(--red))}
+.slogan{font-style:italic;letter-spacing:.15em;margin:12px 0 0;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+.citoyen{font-size:.85rem;opacity:.85;margin:2px 0 0}
+.overline{font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;opacity:.75;margin:0 0 10px}
+#boot .boot-inner .overline,#boot .boot-inner h1,#boot .boot-inner .slogan,
+#boot .boot-inner .citoyen,#boot .boot-inner .loader{opacity:0;transform:translateY(16px);
+  animation:rise .65s cubic-bezier(.2,.7,.3,1) forwards}
+#boot .boot-inner .overline{animation-delay:.05s}
+#boot .boot-inner h1{animation-delay:.15s}
+#boot .boot-inner .slogan{animation-delay:.3s}
+#boot .boot-inner .citoyen{animation-delay:.55s}
+#boot .boot-inner .loader{animation-delay:.8s}
+@keyframes rise{to{opacity:1;transform:none}}
+#boot .cockade{width:96px;height:96px;border-radius:50%;margin:0 auto 20px;border:3px solid #e8d5a0;
+  background:conic-gradient(var(--blue) 0 33.3%,#f4efe6 33.3% 66.6%,var(--red) 66.6% 100%);
+  box-shadow:0 6px 24px rgba(0,0,0,.4);animation:spin 2.4s cubic-bezier(.55,.06,1,.4) forwards}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader{width:210px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);margin:24px auto 0;overflow:hidden}
+.loader span{display:block;height:100%;width:0;border-radius:3px;
+  background:linear-gradient(90deg,var(--blue),#f4efe6,var(--red));animation:load 1.6s ease-out .9s forwards}
+@keyframes load{to{width:100%}}
+
+/* Desktop : papier avec lavis tricolore + filigrane */
+#desktop{position:fixed;inset:0;overflow:hidden;background:
+  radial-gradient(ellipse at 15% 8%,rgba(30,90,168,.10),transparent 45%),
+  radial-gradient(ellipse at 85% 12%,rgba(168,44,30,.08),transparent 45%),
+  linear-gradient(180deg,rgba(30,90,168,.04),transparent 30%),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.02) 0 2px,transparent 2px 5px),
+  linear-gradient(180deg,#f6efdf 0%,#ece0c6 55%,#e5d6b4 100%)}
+body.dark #desktop{background:
+  radial-gradient(ellipse at 15% 8%,rgba(30,90,168,.22),transparent 45%),
+  radial-gradient(ellipse at 85% 12%,rgba(168,44,30,.16),transparent 45%),
+  linear-gradient(180deg,#14100c 0%,#191510 55%,#100d09 100%)}
+#desktop::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;z-index:3;
+  background:linear-gradient(90deg,var(--blue) 0 33.4%,#f4efe6 33.4% 66.7%,var(--red) 66.7% 100%)}
+#desktop::after{content:'Republic';position:absolute;inset:0;z-index:0;display:flex;
+  align-items:flex-end;justify-content:flex-end;pointer-events:none;user-select:none;
+  padding:0 30px 58px 0;font-size:clamp(60px,13vw,150px);letter-spacing:.3em;
+  color:rgba(29,24,20,.055);text-transform:uppercase;animation:ink .9s ease-out .3s both}
+@keyframes ink{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+body.dark #desktop::after{color:rgba(233,226,210,.045)}
+
+#deskmeta{position:absolute;left:18px;bottom:52px;z-index:2;font-style:italic;
+  font-size:13px;letter-spacing:.05em;opacity:.65;color:var(--fg)}
+
+#icons{position:absolute;top:18px;left:18px;z-index:2;display:flex;flex-direction:column;flex-wrap:wrap;
+  gap:10px;max-height:calc(100vh - 90px);align-content:flex-start}
+.desk-icon{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 6px;border-radius:9px;cursor:pointer;user-select:none;border:1px solid transparent;
+  opacity:0;animation:rise .45s ease-out forwards}
+.desk-icon:nth-child(1){animation-delay:.05s}
+.desk-icon:nth-child(2){animation-delay:.13s}
+.desk-icon:nth-child(3){animation-delay:.21s}
+.desk-icon:nth-child(4){animation-delay:.29s}
+.desk-icon:nth-child(5){animation-delay:.37s}
+.desk-icon:nth-child(n+6){animation-delay:.45s}
+.desk-icon .di{font-size:34px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));transition:transform .1s}
+.desk-icon:hover .di{transform:translateY(-2px) scale(1.07)}
+.desk-icon:hover{background:rgba(255,255,255,.3);border-color:rgba(0,0,0,.12)}
+.desk-icon .dn{font-size:11px;text-align:center;word-break:break-word;max-width:88px;
+  background:rgba(29,24,20,.72);color:#f4efe6;padding:2px 5px;border-radius:4px;
+  border:1px solid rgba(0,0,0,.3);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.desk-icon.sel{background:rgba(30,90,168,.16);border-color:var(--blue)}
+.desk-icon.sel .dn{outline:1px solid rgba(255,255,255,.4)}
+body.dark .desk-icon:hover{background:rgba(233,226,210,.08);border-color:rgba(233,226,210,.2)}
+body.dark .desk-icon .dn{background:rgba(233,226,210,.16);color:var(--fg);border-color:rgba(233,226,210,.25)}
+body.dark .desk-icon.sel{background:rgba(30,90,168,.3)}
+
+/* Windows */
+#windows{position:absolute;inset:0;z-index:5;pointer-events:none}
+.win{position:absolute;display:flex;flex-direction:column;pointer-events:auto;
+  background:linear-gradient(180deg,var(--win) 0%,var(--win) 72%,rgba(0,0,0,.04) 100%);
+  border:1px solid var(--border);border-radius:9px;min-width:300px;min-height:200px;
+  box-shadow:0 18px 40px rgba(20,14,8,.35),0 3px 8px rgba(20,14,8,.25),inset 0 0 0 1px rgba(255,255,255,.55);
+  animation:winin .16s ease-out}
+@keyframes winin{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.win.focused{border-color:var(--fg);
+  box-shadow:0 26px 56px rgba(20,14,8,.42),0 5px 14px rgba(20,14,8,.3),inset 0 0 0 1px rgba(255,255,255,.6)}
+.win.max{left:0!important;top:0!important;width:100%!important;height:calc(100vh - 40px)!important;border-radius:0}
+.titlebar{display:flex;align-items:center;justify-content:space-between;cursor:move;user-select:none;
+  padding:7px 8px;border-bottom:1px solid var(--border);border-radius:8px 8px 0 0;position:relative;
+  background:linear-gradient(180deg,var(--win) 0%,#e6dcc4 100%)}
+.titlebar::before{content:'';position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:36px;height:7px;border-radius:4px;opacity:.9;
+  background:linear-gradient(90deg,var(--blue) 0 33.4%,#fff 33.4% 66.7%,var(--red) 66.7% 100%)}
+.win.focused .titlebar{background:linear-gradient(180deg,#fff 0%,#f3e9d3 100%)}
+.win.focused .titlebar::before{box-shadow:0 0 0 2px rgba(33,28,22,.85)}
+body.dark .titlebar{background:linear-gradient(180deg,var(--win) 0%,#332a1e 100%)}
+body.dark .win.focused .titlebar{background:linear-gradient(180deg,#3a3020 0%,#332a1e 100%)}
+.t-title{font-weight:bold;font-size:13px;letter-spacing:.04em;padding-left:48px;color:var(--fg)}
+.t-btns{display:flex;gap:5px}
+.t-btns button{width:27px;height:22px;border:1px solid rgba(0,0,0,.35);border-radius:5px;
+  cursor:pointer;font-size:12px;line-height:1;font-family:var(--serif);color:#211c16;
+  background:linear-gradient(180deg,#fff,#e6dfd0);box-shadow:0 1px 0 rgba(0,0,0,.25),inset 0 1px 0 #fff}
+.t-btns button:hover{filter:brightness(.94)}
+.t-btns .tb-close{background:linear-gradient(180deg,#c9402f,#9c2417);color:#fff;border-color:#7e1f18}
+.t-btns .tb-close:hover{background:linear-gradient(180deg,#d84f3c,#b32a1c)}
+body.dark .t-btns button{background:linear-gradient(180deg,#3b332a,#282119);color:var(--fg);border-color:#000}
+body.dark .t-btns .tb-close{background:linear-gradient(180deg,#c9402f,#9c2417);color:#fff}
+.winbody{flex:1;overflow:auto;display:flex;flex-direction:column;border-radius:0 0 9px 9px}
+
+/* Guillotine close */
+.win.guillotining{animation:doom .5s forwards}
+.win.guillotining .blade{position:absolute;left:0;top:-25%;width:100%;height:26%;z-index:999;
+  background:linear-gradient(180deg,#d5d5d5 0 42%,#6b6b6b 42% 56%,var(--red) 56% 100%);
+  box-shadow:0 4px 14px rgba(0,0,0,.55);animation:fall .5s ease-in forwards}
+@keyframes fall{to{top:100%}}
+@keyframes doom{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
+
+/* Taskbar */
+#taskbar{position:fixed;left:0;right:0;bottom:0;height:40px;display:flex;align-items:stretch;gap:7px;
+  background:linear-gradient(180deg,#1b2742,#0f1626);color:#f4efe6;z-index:900;padding:0 10px;
+  border-bottom:2px solid var(--gold);box-shadow:0 -3px 14px rgba(0,0,0,.35)}
+#taskbar::before{content:'';position:absolute;left:0;right:0;top:-3px;height:3px;
+  background:linear-gradient(90deg,var(--blue) 0 33.4%,#f4efe6 33.4% 66.7%,var(--red) 66.7% 100%)}
+#launcher{display:flex;align-items:center;gap:6px;padding:0 14px;border:none;border-radius:6px;margin:5px 0;
+  font:bold 13px var(--serif);letter-spacing:.06em;cursor:pointer;color:#211c16;white-space:nowrap;
+  background:linear-gradient(180deg,#e8cf6a,#c9a227);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 1px 3px rgba(0,0,0,.4)}
+#launcher:hover{filter:brightness(1.07)}
+#tricolore{align-self:stretch;width:4px;border-radius:2px;margin:7px 0;
+  background:linear-gradient(180deg,var(--blue) 0 33%,#f4efe6 33% 66%,var(--red) 66% 100%)}
+#tasks{flex:1;display:flex;gap:6px;overflow-x:auto;height:100%;align-items:center}
+#tasks .task{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.18);border-radius:6px;color:#e8e2d4;
+  font:13px var(--serif);padding:5px 12px;cursor:pointer;white-space:nowrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+#tasks .task:hover{background:rgba(255,255,255,.16)}
+#tasks .task.active{background:linear-gradient(180deg,#c9402f,#9c2417);border-color:#7e1f18;color:#fff;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.15)}
+#clockbox{display:flex;gap:6px;flex:none;align-items:center}
+#clockbox button{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.18);border-radius:6px;color:#f4efe6;
+  padding:5px 10px;min-width:44px;cursor:pointer;font:13px var(--serif);white-space:nowrap}
+#clockbox button:hover{background:rgba(255,255,255,.16)}
+
+/* Context menu */
+#ctxmenu{position:fixed;z-index:9999;display:none;min-width:180px;background:var(--win);
+  border:1px solid var(--border);border-radius:9px;padding:4px;
+  box-shadow:0 14px 34px rgba(20,14,8,.38),0 2px 6px rgba(0,0,0,.2)}
+#ctxmenu .ctx-item{display:block;width:100%;text-align:left;background:none;border:none;
+  padding:7px 12px;font:13px var(--serif);cursor:pointer;color:var(--fg);border-radius:5px}
+#ctxmenu .ctx-item:hover{background:var(--blue);color:#fff}
+
+/* Apps */
+.app{flex:1;display:flex;flex-direction:column;overflow:auto;padding:12px;gap:10px}
+.app-dossier{overflow:hidden}
+.masthead{border:2px double var(--border);border-radius:6px;padding:9px 12px;text-align:center;
+  background:linear-gradient(180deg,rgba(0,0,0,.02),transparent)}
+.masthead h2{font-size:18px;letter-spacing:.12em;margin:0;color:var(--red)}
+.masthead span{font-size:11px;opacity:.8;font-style:italic}
+.feed{display:flex;flex-direction:column;gap:10px}
+.article{border-left:3px solid var(--red);padding:8px 10px;border-radius:0 5px 5px 0}
+.article h3{margin:0 0 2px;font-size:14px}
+.article time{font-size:10px;opacity:.7;font-style:italic}
+.article .body{white-space:pre-wrap;font-size:13px;margin-top:6px}
+
+.estates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;align-content:start}
+.estate{border:1px solid var(--border);border-radius:7px;padding:11px;background:var(--win);
+  box-shadow:0 3px 10px rgba(0,0,0,.08);transition:transform .1s}
+.estate:hover{transform:translateY(-2px)}
+.estate h3{margin:0 0 8px;font-size:14px;border-bottom:1px dotted var(--border);padding-bottom:4px}
+.estate ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.7}
+
+.stats{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center}
+.stat{display:flex;justify-content:space-between;border-bottom:1px dotted var(--border);padding:8px 4px}
+.stat-val{font-weight:bold;font-variant-numeric:tabular-nums;color:var(--red)}
+
+.decret-form{display:flex;gap:6px}
+.decret-form input{flex:1;padding:6px 9px;border:1px solid var(--border);border-radius:5px;color:var(--fg);
+  font:13px var(--serif);background:var(--win)}
+.decret-add{background:var(--red);border:none;border-radius:5px;color:#fff;padding:6px 13px;cursor:pointer;font:bold 12px var(--serif)}
+.decret-add:hover{background:var(--redd)}
+.decrets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.decret{display:flex;align-items:center;gap:8px;padding:6px 9px;border:1px solid rgba(128,128,128,.35);
+  border-radius:5px;background:var(--win)}
+.decret span{flex:1;font-size:13px}
+.decret.done span{text-decoration:line-through;opacity:.55}
+.decret .icon{background:none;border:none;cursor:pointer;font-size:12px;opacity:.6}
+.decret .icon:hover{opacity:1}
+
+/* The Dossier (file manager) */
+.fm-toolbar{display:flex;gap:6px;align-items:center}
+.fm-btn{background:var(--win);border:1px solid var(--border);border-radius:5px;cursor:pointer;padding:4px 9px;font:12px var(--serif);color:var(--fg)}
+.fm-btn:hover{background:rgba(30,90,168,.12)}
+.fm-crumbs{display:flex;gap:2px;flex-wrap:wrap;align-items:center;font-size:12px;flex:1;overflow-x:auto}
+.fm-crumbs .crumb{background:none;border:none;cursor:pointer;color:var(--blue);font:12px var(--serif);padding:2px 4px;border-radius:3px}
+.fm-crumbs .crumb:hover{text-decoration:underline;background:rgba(30,90,168,.12)}
+.fm-split{display:flex;flex:1;min-height:0;gap:8px}
+.fm-tree{width:180px;flex:none;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:6px;background:var(--win)}
+.fm-tree ul{list-style:none;margin:0;padding-left:12px}
+.fm-tree .tree-label{cursor:pointer;display:block;padding:3px 5px;border-radius:4px;font-size:12px;white-space:nowrap}
+.fm-tree .tree-label:hover{background:rgba(30,79,138,.15)}
+.fm-tree .tree-label.drop{background:rgba(181,52,42,.25)}
+.fm-grid{flex:1;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--win);
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;align-content:start}
+.fm-grid.drop{background:rgba(181,52,42,.12);border-color:var(--red)}
+.fm-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;border-radius:7px;
+  cursor:pointer;text-align:center;user-select:none;border:1px solid transparent}
+.fm-item .fm-icon{font-size:30px}
+.fm-item .fm-name{font-size:11px;word-break:break-word;max-width:100%}
+.fm-item:hover{background:rgba(128,128,128,.12);border-color:rgba(128,128,128,.2)}
+.fm-item.sel{background:rgba(30,79,138,.2);border-color:var(--blue)}
+.fm-item.drop{background:rgba(181,52,42,.25)}
+.fm-status{font-size:11px;opacity:.7;font-style:italic}
+.view{white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;padding:4px;margin:0;line-height:1.6}
+
+/* Scrollbars */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.22);border:2px solid transparent;border-radius:6px;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.4);background-clip:content-box}
+body.dark ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);background-clip:content-box}
+</style>
+</head>
+<body>
+  <div id="boot">
+    <div class="boot-inner">
+      <div class="cockade"></div>
+      <p class="overline">National Operating System</p>
+      <h1>revOS</h1>
+      <p class="slogan">Liberty · Equality · Fraternity</p>
+      <p class="citoyen">Citizen Beelzebubo presents…</p>
+      <div class="loader"><span></span></div>
+    </div>
+  </div>
+  <div id="desktop">
+    <div id="deskmeta"></div>
+    <div id="icons"></div>
+    <div id="windows"></div>
+    <div id="taskbar">
+      <button id="launcher" title="Assemblée nationale">⚜ Assembly</button>
+      <div id="tricolore"></div>
+      <div id="tasks"></div>
+      <div id="clockbox">
+        <button id="clock" title="Toggle calendar">…</button>
+        <button id="theme" title="Day / night">☀</button>
+      </div>
+    </div>
+    <div id="ctxmenu"></div>
+  </div>
+<script>
+// revOS — filesystem in memory. No password, no trace.
+const FS = {
+  _map: new Map(),
+  nextId: 1,
+  bureau: 'bureau',
+  root: null,
+
+  init() {
+    this.root = { id: 'racine', name: 'Republic', type: 'folder', children: [], open: true };
+    this._map.set('racine', this.root);
+    this._seed();
+    this._index(this.root);
+    this.emit();
+  },
+
+  _index(n) {
+    this._map.set(n.id, n);
+    (n.children || []).forEach(c => this._index(c));
+  },
+
+  _seed() {
+    const dir = (name, parent, id) => {
+      const d = { id: id || 'd' + (this.nextId++), name, type: 'folder', children: [], open: true };
+      this.get(parent).children.push(d);
+      this._map.set(d.id, d);
+    };
+    const file = (name, content, parent) => {
+      this.get(parent).children.push({ id: 'f' + (this.nextId++), name, type: 'file', content });
+    };
+    const app = (name, target, parent) => {
+      this.get(parent).children.push({ id: 'a' + (this.nextId++), name, type: 'app', target });
+    };
+
+    dir('Desktop', 'racine', 'bureau');
+    app('The Monitor.app', 'moniteur', 'bureau');
+    app('The Dossier.app', 'dossier', 'bureau');
+    app("The Assignat.app", 'assignat', 'bureau');
+    app('The Estates-General.app', 'etats', 'bureau');
+    app('The Committee.app', 'comite', 'bureau');
+    file('Welcome.txt',
+      'Citizen Beelzebubo greets you.\n\nWelcome to revOS. Double-click an icon ' +
+      'to open, drag files to move them.\n\nLiberty · Equality · Fraternity', 'bureau');
+
+    dir('Projects', 'racine', 'projets');
+    dir('Archives', 'racine', 'archives');
+    dir('Folders', 'racine', 'dossiers');
+    file('plan-egalite.txt', "PLAN OF EQUALITY\nGoal: distribute windows equitably.\nStatus: in progress.", 'projets');
+    file('manifeste-revo.txt', 'MANIFESTO OF revOS\nEvery window has the right to move freely.', 'projets');
+    file('circulaire.txt', 'CIRCULAR No. 89\nThe Committee reminds you that disorganized files will be seized.', 'archives');
+    file('pamphlet.txt', 'ANONYMOUS PAMPHLET\n« A system that cannot be customized is tyranny. »', 'archives');
+    file('current-notes.txt', 'CURRENT NOTES\n- Add a terminal?\n- Peindre le fond d\'écran en bleu ?', 'dossiers');
+  },
+
+  get(id) { return this._map.get(id) || null; },
+  children(id) { const n = this.get(id); return (n && n.children) ? n.children : []; },
+
+  parent(id) {
+    let found = null;
+    this._walk(this.root, n => { if ((n.children || []).some(c => c.id === id)) found = n; });
+    return found;
+  },
+
+  _walk(node, fn) {
+    fn(node);
+    (node.children || []).forEach(c => this._walk(c, fn));
+  },
+
+  _isDescendant(id, ancestorId) {
+    let c = this.parent(id);
+    while (c) { if (c.id === ancestorId) return true; c = this.parent(c.id); }
+    return false;
+  },
+
+  count(type) {
+    let n = 0;
+    this._walk(this.root, c => { if (c.type === type) n++; });
+    return n;
+  },
+
+  move(id, destId) {
+    const n = this.get(id), p = this.parent(id), d = this.get(destId);
+    if (!n || !p || !d || d.type !== 'folder' || d.id === id || p.id === d.id) return false;
+    if (this._isDescendant(d.id, id)) return false;
+    p.children = p.children.filter(c => c.id !== id);
+    d.children.push(n);
+    this.emit();
+    return true;
+  },
+
+  remove(id) {
+    const p = this.parent(id);
+    if (!p) return false;
+    p.children = p.children.filter(c => c.id !== id);
+    this._map.delete(id);
+    this.emit();
+    return true;
+  },
+
+  rename(id, name) {
+    const n = this.get(id);
+    if (!n || !name.trim()) return false;
+    n.name = name.trim();
+    this.emit();
+    return true;
+  },
+
+  mkdir(parentId, name) {
+    const p = this.get(parentId);
+    if (!p) return null;
+    const d = { id: 'd' + (this.nextId++), name: name || 'Untitled folder', type: 'folder', children: [], open: true };
+    p.children.push(d);
+    this._index(d);
+    this.emit();
+    return d;
+  },
+
+  emit() { window.dispatchEvent(new CustomEvent('fschange')); }
+};
+
+FS.init();
+
+// revOS — applications. Each app is a descriptor ({ w, h, build }).
+const DEVLOG = [
+  { date: 'Act I — Aug 16, 2026', title: 'The Foundation of the Republic',
+    text: 'Tricolor boot, desktop, taskbar, clock (revolutionary calendar).\nThe skeleton is set: every application will attach to it.' },
+  { date: 'Act II — Aug 16, 2026', title: 'The Window and the Blade',
+    text: 'Window manager: drag, stack, minimize, maximize…\nAnd close with a guillotine.' },
+  { date: 'Act III — Aug 16, 2026', title: 'The Dossier, Secret Feature',
+    text: 'Feature the guide didn\'t ask for: a real file manager.\nDrag-and-drop between folders and desktop, clickable icons, apps as files (.app).' },
+  { date: 'Act IV — Aug 16, 2026', title: 'Cosmetics and Sharing',
+    text: 'Day/night theme (Egalite/Terreur), generic applications.\nReady to share — no password.' },
+  { date: 'Act V — Aug 16, 2026', title: 'The Face',
+    text: 'Style overhaul: engraved paper, beveled windows, taskbar with\nlauncher "Assembly". Now it looks like a real operating system.' },
+  { date: 'Act VI — Aug 16, 2026', title: 'The Fatal Error',
+    text: 'Critical bug fixed: the filesystem initialized before indexing\nits root — zero icons, dead buttons. Tested in headless browser: zero errors.' }
+];
+
+const FileManager = {
+  current: 'bureau',
+  root: null, history: [],
+
+  build() {
+    this.current = 'bureau';
+    this.history = [];
+    const root = el('div', 'app app-dossier');
+    root.appendChild(el('header', 'masthead',
+      '<h2>THE DOSSIER</h2><span>National file bureau · drag to move</span>'));
+
+    const toolbar = el('div', 'fm-toolbar');
+    const back = el('button', 'fm-btn', '←'), up = el('button', 'fm-btn', '↑');
+    const mk = el('button', 'fm-btn', '📁 +');
+    back.addEventListener('click', () => { if (this.history.length) this.nav(this.history.pop()); });
+    up.addEventListener('click', () => { const p = FS.parent(this.current); if (p) this.nav(p.id); });
+    mk.addEventListener('click', () => { const name = prompt('Folder name :'); if (name) FS.mkdir(this.current, name); });
+
+    const crumbs = el('div', 'fm-crumbs');
+    toolbar.append(back, up, mk, crumbs);
+
+    const split = el('div', 'fm-split');
+    this.tree = el('div', 'fm-tree');
+    this.grid = el('div', 'fm-grid');
+    split.append(this.tree, this.grid);
+
+    const status = el('div', 'fm-status');
+    root.append(toolbar, split, status);
+
+    this.grid.addEventListener('dragover', e => { e.preventDefault(); this.grid.classList.add('drop'); });
+    this.grid.addEventListener('dragleave', () => this.grid.classList.remove('drop'));
+    this.grid.addEventListener('drop', e => {
+      e.preventDefault(); this.grid.classList.remove('drop'); this.moveTo(this.current);
+    });
+    window.addEventListener('fschange', () => this.render());
+
+    this.root = root;
+    this.render();
+    return root;
+  },
+
+  nav(id) { this.current = id; this.render(); },
+
+  render() {
+    let node = FS.get(this.current);
+    if (!node) { node = FS.get('racine'); this.current = 'racine'; }
+
+    this.tree.innerHTML = '';
+    const buildTree = n => {
+      const label = el('span', 'tree-label');
+      label.textContent = (n.open ? '▾ ' : '▸ ') + '📁 ' + n.name;
+      label.addEventListener('click', e => { e.stopPropagation(); n.open = !n.open; this.render(); });
+      label.addEventListener('dblclick', e => { e.stopPropagation(); this.nav(n.id); });
+      label.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+      label.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); this.moveTo(n.id); });
+      const li = el('li');
+      li.appendChild(label);
+      if (n.open && n.children) {
+        const ul = el('ul');
+        n.children.forEach(c => { if (c.type === 'folder') ul.appendChild(buildTree(c)); });
+        li.appendChild(ul);
+      }
+      return li;
+    };
+    this.tree.appendChild(buildTree(FS.root));
+
+    this.root.querySelector('.fm-crumbs').innerHTML = '';
+    const chain = []; let c = node;
+    while (c) { chain.unshift(c); c = FS.parent(c.id); }
+    chain.forEach(n => {
+      const b = el('button', 'crumb');
+      b.textContent = n.name;
+      b.addEventListener('click', () => this.nav(n.id));
+      this.root.querySelector('.fm-crumbs').appendChild(b);
+    });
+
+    this.grid.innerHTML = '';
+    FS.children(this.current).forEach(n => this.grid.appendChild(this.item(n)));
+    this.root.querySelector('.fm-status').textContent =
+      FS.children(this.current).length + ' item(s) · ' + node.name;
+  },
+
+  item(n) {
+    const it = el('div', 'fm-item' + (n.type === 'folder' ? ' folder' : ''));
+    it.draggable = true;
+    const icon = n.type === 'folder' ? '📁' : (n.type === 'app' ? '🗡️' : '📄');
+    const nm = el('div', 'fm-name');
+    nm.textContent = n.name;
+    it.append(el('div', 'fm-icon', icon), nm);
+    it.addEventListener('click', () => {
+      document.querySelectorAll('.fm-item').forEach(x => x.classList.remove('sel'));
+      it.classList.add('sel');
+    });
+    it.addEventListener('dblclick', () => this.open(n));
+    it.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); OS.ctxMenu(e.clientX, e.clientY, n); });
+    it.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', n.id); e.dataTransfer.effectAllowed = 'move'; OS.dragId = n.id; });
+    it.addEventListener('dragover', e => {
+      if (n.type === 'folder') { e.preventDefault(); e.stopPropagation(); it.classList.add('drop'); }
+    });
+    it.addEventListener('dragleave', () => it.classList.remove('drop'));
+    it.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); it.classList.remove('drop');
+      if (n.type === 'folder') this.moveTo(n.id);
+    });
+    return it;
+  },
+
+  open(n) {
+    if (n.type === 'folder') { this.history.push(this.current); this.nav(n.id); }
+    else OS.open(n);
+  },
+
+  moveTo(destId) {
+    if (OS.dragId && FS.move(OS.dragId, destId)) OS.dragId = null;
+  }
+};
+
+const Apps = {
+  moniteur: {
+    id: 'moniteur', name: 'The Monitor', icon: '📰', w: 560, h: 400,
+    build() {
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead',
+        '<h2>THE MONITOR</h2><span>Official journal · devlog gazette</span>'));
+      const feed = el('div', 'feed');
+      DEVLOG.forEach(e => {
+        const art = el('article', 'article');
+        art.appendChild(el('h3', null, e.title));
+        art.appendChild(el('time', null, e.date));
+        const body = el('div', 'body');
+        body.textContent = e.text;
+        art.appendChild(body);
+        feed.appendChild(art);
+      });
+      root.appendChild(feed);
+      return root;
+    }
+  },
+
+  comite: {
+    id: 'comite', name: 'Committee of Public Safety', icon: '📜', w: 480, h: 380,
+    build() {
+      const KEY = 'revos.decrets';
+      let items = [];
+      try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { items = []; }
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead',
+        '<h2>COMMITTEE OF PUBLIC SAFETY</h2><span>Decrees to execute · check to execute</span>'));
+      const list = el('ul', 'decrets');
+      const save = () => {
+        try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {}
+        window.dispatchEvent(new CustomEvent('statschange'));
+      };
+      const render = () => {
+        list.innerHTML = '';
+        items.forEach((t, i) => {
+          const li = el('li', 'decret' + (t.done ? ' done' : ''));
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.checked = !!t.done;
+          cb.addEventListener('change', () => { t.done = cb.checked; save(); render(); });
+          const del = el('button', 'icon', '🗑');
+          del.addEventListener('click', () => { items.splice(i, 1); save(); render(); });
+          li.append(cb, el('span', null, t.text), del);
+          list.appendChild(li);
+        });
+      };
+      const form = el('div', 'decret-form');
+      const input = document.createElement('input');
+      input.placeholder = 'New decree…';
+      const btn = el('button', 'decret-add', 'Décréter');
+      btn.addEventListener('click', () => {
+        const t = input.value.trim();
+        if (!t) return;
+        items.push({ text: t, done: false });
+        input.value = '';
+        save(); render();
+      });
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+      form.append(input, btn);
+      root.append(form, list);
+      render();
+      return root;
+    }
+  },
+
+  assignat: {
+    id: 'assignat', name: 'The Assignat', icon: '🪙', w: 460, h: 340,
+    build() {
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead',
+        '<h2>THE ASSIGNAT</h2><span>National statistics registry</span>'));
+      const grid = el('div', 'stats');
+      const row = (label, val) => {
+        const r = el('div', 'stat');
+        r.append(el('span', null, label), el('span', 'stat-val', val));
+        return r;
+      };
+      const bastille = Math.floor((Date.now() - Date.UTC(1789, 6, 14)) / 86400000);
+      const paint = () => {
+        let done = 0;
+        try { done = (JSON.parse(localStorage.getItem('revos.decrets')) || []).filter(t => t.done).length; } catch (e) {}
+        grid.innerHTML = '';
+        grid.append(
+          row('Days since the Storming of the Bastille', bastille.toLocaleString()),
+          row('Open windows', OS.stats.windowsOpened),
+          row('Files in circulation', FS.count('file')),
+          row('Decrees executed', done)
+        );
+      };
+      paint();
+      window.addEventListener('statschange', paint);
+      root.appendChild(grid);
+      return root;
+    }
+  },
+
+  etats: {
+    id: 'etats', name: 'The Estates-General', icon: '🏛️', w: 580, h: 400,
+    build() {
+      const root = el('div', 'app');
+      root.appendChild(el('header', 'masthead',
+        '<h2>THE ESTATES-GENERAL</h2><span>Citizen profile · three estates, one people</span>'));
+      const row = el('div', 'estates');
+      const estate = (title, emoji, lines) => {
+        const c = el('div', 'estate');
+        c.appendChild(el('h3', null, emoji + ' ' + title));
+        const ul = el('ul');
+        lines.forEach(l => ul.appendChild(el('li', null, l)));
+        c.appendChild(ul);
+        return c;
+      };
+      row.append(
+        estate('Clergy — Education', '📚', ['School of letters and numbers', 'General baccalaureate', 'Self-taught apprentice coder']),
+        estate('Nobility — Skills', '⚔️', ['HTML, CSS, JavaScript', 'Critical thinking and satire', 'Committee organization']),
+        estate('Third Estate — Passions', '🥖', ['Revolutionary history', 'Games and creative jams', 'Free code sharing'])
+      );
+      root.appendChild(row);
+      return root;
+    }
+  },
+
+  dossier: {
+    id: 'dossier', name: 'The Dossier', icon: '📁', w: 640, h: 420,
+    build() { return FileManager.build(); }
+  }
+};
+
+// revOS — kernel: startup, window manager, taskbar, clock.
+function el(tag, cls, html) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html !== undefined) n.innerHTML = html;
+  return n;
+}
+
+const OS = {
+  z: 10,
+  wid: 0,
+  wins: new Map(),
+  active: null,
+  dragId: null,
+  revMode: false,
+  stats: { windowsOpened: 0 },
+
+  boot() {
+    this.renderDesktop();
+    document.getElementById('deskmeta').textContent =
+      new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' }) +
+      ' · The Nation salutes you, Citizen Beelzebubo';
+    this.tick();
+    setInterval(() => this.tick(), 1000);
+
+    document.getElementById('theme').addEventListener('click', () => {
+      const dark = document.body.classList.toggle('dark');
+      document.getElementById('theme').textContent = dark ? '☾' : '☀';
+    });
+    document.getElementById('clock').addEventListener('click', () => {
+      this.revMode = !this.revMode;
+      this.tick();
+    });
+    document.getElementById('launcher').addEventListener('click', e => {
+      e.stopPropagation();
+      this.menu(10, innerHeight - 40, Object.values(Apps).map(a => [a.icon + ' ' + a.name, () => this.openApp(a.id)]));
+    });
+
+    const desktop = document.getElementById('desktop');
+    desktop.addEventListener('dragover', e => e.preventDefault());
+    desktop.addEventListener('drop', e => {
+      e.preventDefault();
+      if (this.dragId && FS.move(this.dragId, 'bureau')) this.dragId = null;
+    });
+    desktop.addEventListener('contextmenu', e => {
+      if (e.target.closest('.desk-icon')) return;
+      e.preventDefault();
+      this.menu(e.clientX, e.clientY, [
+        ['New folder', () => { const name = prompt('Name :'); if (name) FS.mkdir('bureau', name); }]
+      ]);
+    });
+    document.addEventListener('click', () => { document.getElementById('ctxmenu').style.display = 'none'; });
+    window.addEventListener('fschange', () => this.renderDesktop());
+
+    setTimeout(() => document.getElementById('boot').classList.add('done'), 2600);
+    setTimeout(() => document.getElementById('boot').remove(), 3400);
+  },
+
+  tick() {
+    const d = new Date();
+    document.getElementById('clock').textContent = this.revMode
+      ? revCal(d)
+      : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  },
+
+  openApp(id) {
+    const a = Apps[id];
+    if (!a) return;
+    for (const o of this.wins.values()) {
+      if (o.a.id === id) {
+        if (o.min) this.minimizeWin(o);
+        else this.focus(o);
+        return;
+      }
+    }
+    this.openWindow(a);
+  },
+
+  open(n) {
+    if (n.type === 'folder') {
+      this.openApp('dossier');
+      if (FileManager.root) FileManager.nav(n.id);
+    } else if (n.type === 'app') this.openApp(n.target);
+    else this.openViewer(n);
+  },
+
+  openViewer(node) {
+    this.openWindow({
+      icon: '📄', name: node.name, w: 480, h: 340,
+      build() {
+        const r = el('div', 'app');
+        r.appendChild(el('pre', 'view', node.content || ''));
+        return r;
+      }
+    });
+  },
+
+  openWindow(a) {
+    const id = ++this.wid;
+    this.stats.windowsOpened++;
+    window.dispatchEvent(new CustomEvent('statschange'));
+
+    const win = document.createElement('div');
+    win.className = 'win';
+    win.style.left = (40 + ((id % 6) * 30)) + 'px';
+    win.style.top = (30 + ((id % 6) * 24)) + 'px';
+    win.style.width = a.w + 'px';
+    win.style.height = a.h + 'px';
+
+    const tb = el('div', 'titlebar');
+    const t = el('span', 't-title');
+    t.textContent = a.icon + ' ' + a.name;
+    tb.appendChild(t);
+    const btns = el('div', 't-btns');
+    const obj = { id, a, el: win, min: false, max: false };
+    const ACT = { min: 'minimizeWin', max: 'maximizeWin', close: 'closeWin' };
+    ['min', 'max', 'close'].forEach(k => {
+      const label = k === 'min' ? '—' : (k === 'max' ? '▢' : '✕');
+      const b = el('button', 'tb-' + k, label);
+      b.addEventListener('click', e => { e.stopPropagation(); this[ACT[k]](obj); });
+      btns.appendChild(b);
+    });
+    tb.appendChild(btns);
+
+    const body = el('div', 'winbody');
+    win.append(tb, body);
+    win.addEventListener('pointerdown', () => this.focus(obj), true);
+    this.makeDraggable(tb, obj);
+
+    document.getElementById('windows').appendChild(win);
+    body.appendChild(a.build());
+    this.wins.set(id, obj);
+    this.focus(obj);
+  },
+
+  makeDraggable(tb, obj) {
+    const win = obj.el;
+    tb.addEventListener('pointerdown', e => {
+      if (e.target.closest('.t-btns') || obj.max) return;
+      const r = win.getBoundingClientRect();
+      const ox = e.clientX - r.left, oy = e.clientY - r.top;
+      const move = ev => {
+        let x = Math.max(0, Math.min(ev.clientX - ox, innerWidth - r.width));
+        let y = Math.max(0, Math.min(ev.clientY - oy, innerHeight - 40 - r.height));
+        win.style.left = x + 'px';
+        win.style.top = y + 'px';
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    });
+  },
+
+  focus(obj) {
+    this.wins.forEach(o => o.el.classList.remove('focused'));
+    obj.el.classList.add('focused');
+    obj.el.style.zIndex = ++this.z;
+    this.active = obj;
+    this.renderTaskbar();
+  },
+
+  minimizeWin(obj) {
+    obj.min = !obj.min;
+    obj.el.style.display = obj.min ? 'none' : 'flex';
+    if (!obj.min) this.focus(obj);
+    this.renderTaskbar();
+  },
+
+  maximizeWin(obj) {
+    obj.max = !obj.max;
+    obj.el.classList.toggle('max', obj.max);
+    if (obj.max) this.focus(obj);
+  },
+
+  closeWin(obj) {
+    const win = obj.el;
+    win.classList.add('guillotining');
+    win.appendChild(el('div', 'blade'));
+    window.dispatchEvent(new CustomEvent('statschange'));
+    setTimeout(() => {
+      win.remove();
+      this.wins.delete(obj.id);
+      if (this.active === obj) this.active = null;
+      this.renderTaskbar();
+    }, 520);
+  },
+
+  renderTaskbar() {
+    const box = document.getElementById('tasks');
+    box.innerHTML = '';
+    this.wins.forEach(o => {
+      const b = el('button', 'task' + (o === this.active ? ' active' : ''));
+      b.textContent = o.a.icon + ' ' + o.a.name;
+      b.addEventListener('click', () => {
+        if (o.min) this.minimizeWin(o);
+        else if (o === this.active) this.minimizeWin(o);
+        else this.focus(o);
+      });
+      box.appendChild(b);
+    });
+  },
+
+  renderDesktop() {
+    const box = document.getElementById('icons');
+    box.innerHTML = '';
+    FS.children('bureau').forEach(n => {
+      const it = el('div', 'desk-icon');
+      it.draggable = true;
+      const icon = n.type === 'folder' ? '📁' : (n.type === 'app' ? '🗡️' : '📄');
+      const dn = el('div', 'dn');
+      dn.textContent = n.name;
+      it.append(el('div', 'di', icon), dn);
+      it.addEventListener('click', () => {
+        document.querySelectorAll('.desk-icon').forEach(x => x.classList.remove('sel'));
+        it.classList.add('sel');
+      });
+      it.addEventListener('dblclick', () => this.open(n));
+      it.addEventListener('contextmenu', e => { e.preventDefault(); this.ctxMenu(e.clientX, e.clientY, n); });
+      it.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', n.id); e.dataTransfer.effectAllowed = 'move'; this.dragId = n.id; });
+      box.appendChild(it);
+    });
+  },
+
+  menu(x, y, items) {
+    const m = document.getElementById('ctxmenu');
+    m.innerHTML = '';
+    items.forEach(([label, fn]) => {
+      const b = el('button', 'ctx-item', label);
+      b.addEventListener('click', () => { m.style.display = 'none'; fn(); });
+      m.appendChild(b);
+    });
+    m.style.display = 'block';
+    m.style.left = Math.min(x, innerWidth - m.offsetWidth - 8) + 'px';
+    m.style.top = Math.min(y, innerHeight - 48 - m.offsetHeight) + 'px';
+  },
+
+  ctxMenu(x, y, node) {
+    this.menu(x, y, [
+      ['Open', () => this.open(node)],
+      ['Rename', () => {
+        const name = prompt('New name :', node.name);
+        if (name) FS.rename(node.id, name);
+      }],
+      ['Delete', () => {
+        if (confirm("Delete '" + node.name + "'?")) FS.remove(node.id);
+      }]
+    ]);
+  }
+};
+
+// Revolutionary calendar (approximation: leap years every 4 years)
+// ponytail: century leap-year rule ignored, perfectly fine for a clock widget
+function revCal(d) {
+  const epoch = Date.UTC(1792, 8, 22);
+  const months = ['Vendémiaire', 'Brumaire', 'Frimaire', 'Nivôse', 'Pluviôse', 'Ventôse',
+    'Germinal', 'Floréal', 'Prairial', 'Messidor', 'Thermidor', 'Fructidor'];
+  const days = ['Primidi', 'Duodi', 'Tridi', 'Quartidi', 'Quintidi', 'Sextidi',
+    'Septidi', 'Octidi', 'Nonidi', 'Décadi'];
+  let n = Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - epoch) / 86400000);
+  let year = 1;
+  while (n >= (year % 4 === 0 ? 366 : 365)) { n -= (year % 4 === 0 ? 366 : 365); year++; }
+  if (n < 360) {
+    const m = Math.floor(n / 30), dd = n % 30;
+    return days[dd % 10] + ' ' + (dd + 1) + ' ' + months[m] + ' An ' + year;
+  }
+  return 'Sans-culottide ' + (n - 359) + ' An ' + year;
+}
+
+OS.boot();
+</script>
+</body>
+</html>
