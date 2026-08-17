@@ -304,10 +304,8 @@ const FS = {
     };
 
     dir('Desktop', 'racine', 'bureau');
-    app('The Monitor.app', 'moniteur', 'bureau');
     app('The Dossier.app', 'dossier', 'bureau');
     app("The Assignat.app", 'assignat', 'bureau');
-    app('The Estates-General.app', 'etats', 'bureau');
     app('The Committee.app', 'comite', 'bureau');
     file('Welcome.txt',
       'Citizen Beelzebubo greets you.\n\nWelcome to revOS. Double-click an icon ' +
@@ -391,21 +389,7 @@ const FS = {
 
 FS.init();
 
-// revOS — applications. Each app is a descriptor ({ w, h, build }).
-const DEVLOG = [
-  { date: 'Act I — Aug 16, 2026', title: 'The Foundation of the Republic',
-    text: 'Tricolor boot, desktop, taskbar, clock (revolutionary calendar).\nThe skeleton is set: every application will attach to it.' },
-  { date: 'Act II — Aug 16, 2026', title: 'The Window and the Blade',
-    text: 'Window manager: drag, stack, minimize, maximize…\nAnd close with a guillotine.' },
-  { date: 'Act III — Aug 16, 2026', title: 'The Dossier, Secret Feature',
-    text: 'Feature the guide didn\'t ask for: a real file manager.\nDrag-and-drop between folders and desktop, clickable icons, apps as files (.app).' },
-  { date: 'Act IV — Aug 16, 2026', title: 'Cosmetics and Sharing',
-    text: 'Day/night theme (Egalite/Terreur), generic applications.\nReady to share — no password.' },
-  { date: 'Act V — Aug 16, 2026', title: 'The Face',
-    text: 'Style overhaul: engraved paper, beveled windows, taskbar with\nlauncher "Assembly". Now it looks like a real operating system.' },
-  { date: 'Act VI — Aug 16, 2026', title: 'The Fatal Error',
-    text: 'Critical bug fixed: the filesystem initialized before indexing\nits root — zero icons, dead buttons. Tested in headless browser: zero errors.' }
-];
+// revOS: applications.
 
 const FileManager = {
   current: 'bureau',
@@ -525,28 +509,8 @@ const FileManager = {
 };
 
 const Apps = {
-  moniteur: {
-    id: 'moniteur', name: 'The Monitor', icon: '📰', w: 560, h: 400,
-    build() {
-      const root = el('div', 'app');
-      root.appendChild(el('header', 'masthead',
-        '<h2>THE MONITOR</h2><span>Official journal · devlog gazette</span>'));
-      const feed = el('div', 'feed');
-      DEVLOG.forEach(e => {
-        const art = el('article', 'article');
-        art.appendChild(el('h3', null, e.title));
-        art.appendChild(el('time', null, e.date));
-        const body = el('div', 'body');
-        body.textContent = e.text;
-        art.appendChild(body);
-        feed.appendChild(art);
-      });
-      root.appendChild(feed);
-      return root;
-    }
-  },
-
-  comite: {
+  
+comite: {
     id: 'comite', name: 'Committee of Public Safety', icon: '📜', w: 480, h: 380,
     build() {
       const KEY = 'revos.decrets';
@@ -619,31 +583,6 @@ const Apps = {
       paint();
       window.addEventListener('statschange', paint);
       root.appendChild(grid);
-      return root;
-    }
-  },
-
-  etats: {
-    id: 'etats', name: 'The Estates-General', icon: '🏛️', w: 580, h: 400,
-    build() {
-      const root = el('div', 'app');
-      root.appendChild(el('header', 'masthead',
-        '<h2>THE ESTATES-GENERAL</h2><span>Citizen profile · three estates, one people</span>'));
-      const row = el('div', 'estates');
-      const estate = (title, emoji, lines) => {
-        const c = el('div', 'estate');
-        c.appendChild(el('h3', null, emoji + ' ' + title));
-        const ul = el('ul');
-        lines.forEach(l => ul.appendChild(el('li', null, l)));
-        c.appendChild(ul);
-        return c;
-      };
-      row.append(
-        estate('Clergy — Education', '📚', ['School of letters and numbers', 'General baccalaureate', 'Self-taught apprentice coder']),
-        estate('Nobility — Skills', '⚔️', ['HTML, CSS, JavaScript', 'Critical thinking and satire', 'Committee organization']),
-        estate('Third Estate — Passions', '🥖', ['Revolutionary history', 'Games and creative jams', 'Free code sharing'])
-      );
-      root.appendChild(row);
       return root;
     }
   },
