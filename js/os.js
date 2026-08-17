@@ -1,4 +1,4 @@
-// revOS — le noyau : démarrage, gestionnaire de fenêtres, barre des tâches, horloge.
+// revOS
 function el(tag, cls, html) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;

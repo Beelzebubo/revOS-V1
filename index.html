@@ -270,7 +270,7 @@ body.dark ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);background-
     <div id="ctxmenu"></div>
   </div>
 <script>
-// revOS — filesystem in memory. No password, no trace.
+// oh right according to the requirements no password should be there so I did so. Everything above this is AI I ain't gonna lie Idk what is happening there but hey it works everything below though I wrote by myself with some debug help form AI.
 const FS = {
   _map: new Map(),
   nextId: 1,
@@ -593,7 +593,6 @@ comite: {
   }
 };
 
-// revOS — kernel: startup, window manager, taskbar, clock.
 function el(tag, cls, html) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -846,8 +845,7 @@ const OS = {
   }
 };
 
-// Revolutionary calendar (approximation: leap years every 4 years)
-// ponytail: century leap-year rule ignored, perfectly fine for a clock widget
+// Revolutionary calendar  (wanted to stay in theme I guess. Also It accounts for leap year as well)
 function revCal(d) {
   const epoch = Date.UTC(1792, 8, 22);
   const months = ['Vendémiaire', 'Brumaire', 'Frimaire', 'Nivôse', 'Pluviôse', 'Ventôse',
