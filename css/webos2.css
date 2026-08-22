@@ -1,0 +1,206 @@
+/* so since I didnt want to append in the main style.css file I created thee new file so I can add the needed stuff without changing the main file*/
+
+/* this is for the terminal I am making the terminal basic like how its in a standard linux distro*/
+
+.term-output {
+    flex: 1px;
+    overflow: auto;
+    padding: 10px;
+    font: 13px/1.5 var(--mono);
+    background: #0a0a0a; 
+    color: #c9b98a; /*one simple tick if you dont know how to write the color code (like me) 
+    just do #222 and press enter then click the color and drag to where you like it the code appears automatically*/
+    white-space: pre-wrap;
+    min-height: 0;
+}
+
+.term-input {
+    flex: none;
+    display: flex;
+    padding: 4px 10px;
+    background: #111; 
+    border-top: 1px solid #333;
+}
+
+.term-input span {
+    color: var(--red);
+    white-space: pre;
+}
+
+.term-input input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c9b98a;
+    font: 13px var(--mono);
+    caret-color: var(--gold);
+}
+
+/*now this is for the desktop switching and taskbar buttons*/
+
+#desktop-switcher {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    padding: 0 6px
+}
+
+#desktop-switcher button {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 6px; 
+    color: #f4efe6;
+    padding: 5px 8px;
+    cursor: pointer;
+    font: 13px var(--serif);
+    transition: background .15s;
+}
+
+#desktop-swticher  button.active {
+    background: rgba(201,162,39,.4);
+    border-color: rgba(201,162,39,.6);
+}
+
+#desktop-switcher button:hover {
+    background: rgba(255,255,255,.18);
+}
+
+/*now on to the text editor its gonna be kinda basic as well to be fair*/
+
+.editor-area {
+    flex: 1;
+    width: 100px;
+    box-sizing: border-box;
+    padding: 10px;
+    border: none;
+    resize: none;
+    font: 13px/1.6 var(--mono);
+    background: var(--win);
+    color: var(--fg);
+    outline: none;
+    border-radius: 0;
+}
+
+.editor-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--win);
+}
+
+/*see I told you basic af. Well anyway its time for the mucis player fanfare*/
+
+.fanfare-search {
+    display: flex;
+    gap: 6px;
+    padding: 0 4px 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+}
+
+.fanfare-search-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1 px solid var(--border);
+    border-radius: 5px;
+    font: 13px var(--mono);
+    background: var(--win);
+    color: var(--fg);
+    outline: none;
+}
+
+.fanfare-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    overflow: auto;
+    padding: 0 4px;
+}
+
+.fanfare-song {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border: 1px solid rgba(128,128,128,.2);
+    border-radius: 6px;
+    background: var(--win);
+}
+
+.fanfare-song span {
+    font-size: 13px;
+    flex:1;
+}
+
+.fanfare-song .fm-btn {
+    min-width: 36px;
+    text-align: center; 
+}
+
+.fanfare-player {
+    display: none;
+    width: 100%;
+    height: 200px;
+    margin: 8px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #000;
+}
+
+.fm-btn.playing {
+    animation: rpulse 1.5s ease-in-out infinite;
+}
+
+@keyframes rpulse {
+    0%, 100% {
+        box-shadow: none;
+    }
+    50% { box-shadow: 0 0 8px rgba(201,162,39,.6);}
+}
+
+
+/*now this is for the browser (lantern) its gonna be kinda basic as well*/
+.lantern-bar {
+    display: flex;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--win);
+}
+
+.lantern-url {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font: 13px var(--mono);
+    background: var(--win);
+    color: var(--fg);
+    outline: none;
+}
+
+.lantern-frame {
+    flex: 1;
+    width: 100%;
+    border: none;
+}
+
+/*see basic af no? Now it the window switching animation */
+.win { transition: opacity .25s ease, transform .25s ease;}
+.desk-hidden {
+    opacity: 0 !important;
+    transform: scale(.96) !important;
+    pointer-events: none;
+    animation: none !important;
+}
+
+/*now the darkmode overrides */
+
+body.dark .term-output { background: #0e0b08; color: #c9b98a; }
+body.dark .term-input { background: #0a0806; border-top-color: #2a2018; }
+body.dark .editor-area { background: #241d13; color: #e9e2d2; }
+body.dark .fanfare-song { background: #241d13; border-color: rgba(201,185,138,.15); }
+body.dark .fanfare-search-input { background: #241d13; color: #e9e2d2; border-color: rgba(201,185,138,.2); }
+body.dark .lantern-url { background: #241d13; color: #e9e2d2; border-color: rgba(201,185,138,.2); }
+

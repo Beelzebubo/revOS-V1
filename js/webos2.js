@@ -416,9 +416,229 @@ var WebOS2 = {
         r.addEventListener('click', function() {
             input.focus();
         });
+        return r;
     }
 };
 
 //youtube music (music player) idk how I am gonna make this one probably need to watch youtube. Oh the irony of watching youtube to steal music from youtube.
+//direct iframe embed so its uses no API. Well I will try at least to make it work.
 
-})
+var REVO_MUSIC =  [
+    { title: 'La Marseillaise (FR/EN)', id:'PIQSEq6tEVs'},
+    { title: 'La Marseillaise- Mireille Mathieu', id: 'SIxOl1EraXA'},   //these code are form youtube https://www.youtube.com/watch?v=hDU4GB1PTxc&list=RDCLAK5uy_kmPRjHDECIcuVwnKsx2Ng7fyNgFKWNJFs&index=2  
+    // the link above for example's id would be everything after ?v=hDU4GB1PTxc this was a pain to get from youtube.
+    {title: 'Cra Ira (It will be Fine', id: '-HgdeXdkdRo'},
+    {title: 'La Carmagnole', id:' u-tqxx2VrpI'}
+],
+var currentYTFrame = null;
+var currentPlayBtn = null;
+var fanfarePlayerContainer = null;
+
+function playVideo(videoID) {
+    if (currentYTFrame) { currentYTFrame.remove();
+        currentYTFrame = null;
+    }
+    if (fanfarePlayerContainer) return;
+
+    var frame = document.createElement('iframe');
+    frame.src = 'https://youtube.com/embed/' + videoId + '? autoplay=1';
+    frame.allow ='autoplay; encrypted-media';
+    frame.style.cssText = 'width:100%; height:100%; border:none; border:radius:6px';
+    fanfarePlayerContainer.innerHTML = '';
+    fanfarePlayerContainer.appendChild(frame);
+    fanfarePlayerContainer.style.display = 'block';
+    currentYTFrame = frame;
+}
+
+function stopVideo() {  //name already implies what its for no?
+    if(currentYTFrame) {
+        currentYTFrame.remove();
+        currentYTFrame = null;
+    }
+    if (fanfarePlayerContainer) {fanfarePlayerContainer.innerHTML = '';
+        fanfarePlayerContainer.style.display = 'none';}
+    }
+
+    function extractVidoeId(input) {  //this is for the search function where you enter the name of the song only
+        if(!input) return null;
+        input = input.trim();
+        if (/^[\w-]{11}$/.test(input)) return input;
+    var m = input.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+    return m ? m[1] : null;
+    }
+
+    Apps.fanfare = {
+        id: 'fanfare', name: 'The Fanfare', icon: '\uD83C\uDF85', w: 480, h:440,
+        build: function () {
+            var r = el('div', 'app');
+            r.appendChild(el('header', 'masthead', '<h2>THE FANFARE</h2><span>Revolutionary music and more</span>'));
+
+        //now then this is for the search bar
+
+        var search = el('div', 'fanfare-search');
+        var snip = document.createElement('input');
+        snip.placeholder = 'Search by name or paste Youtube URL...';
+        snip.className = 'fanfare-search-input';
+        var sbtn = el('button', 'fm-btn', 'Search');
+        search.append(snip, sbtn);
+        r.appendChild(search);
+
+        fanfarePlayerContainer = el('div', 'fanfare-player');
+        fanfarePlayerContainer.style.cssText = 
+                'display:none; width:100%; height:200px; margin:8px 0; border-radius:6px; overflow:hidden; background:#000';
+        r.appendChild(fanfarePlayerContainer);
+
+        // search handler. As the name suggests it handles the search
+        sbtn.addEventListener('click', function() {
+            var val = snip.value.trim();
+            if (!val) return;
+            var vid = extractVideoId(val);
+            if (vid) {
+                playVideo(vid);
+            }else {
+                //if its not a url and instead a name then youtube will search by name in new tab
+                window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(val), '_blank');
+            }
+        });
+        snip.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter')
+                sbtn.click();
+        });
+
+        var list = el('div', 'fanfare-list');
+        REVO_MUSIC.forEach(function(song){
+            var row = el('div','fanfare-song');
+            var title = el('span');
+            title.textContent = '\uD83C\uDFB5' + song.title;
+            var btn = el('button', 'fm-btn', '\u25B6');
+            btn.addEventListener('click', function(){
+                var allBtns = list.querySelectorAll('.fm-btn');
+                allBtns.forEach(function(b) {
+                    b.textContnet = '\u25B6';
+                    b.classList.remove('playing');
+                });
+                playVideo(song.id);
+                btn.textContnet = '\u23F8';
+                btn.classList.add('playing');
+                currentPlayingBtn = btn;
+            });
+            row.append(title, btn);
+            list.appenChild(row);
+        });
+        r.appendChild(list);
+            return r;
+        }
+    };
+
+    Apps.lantern = {
+     id: 'lantern', name: 'The Lantern', icon:'\uD83C\uDF10', w: 680, h:480,
+    build: function(){
+        var r = el('div', 'app');
+        r.style.padding = '0';
+        r.style.flexDirection = 'column';
+
+        // now the url bar
+        var bar = el('dviv', 'lantern-bar');
+        var inp = document.createElement('input');
+        inp.placeholder = 'Search or enter URl...';
+        inp.className = 'lantern-url';
+        var go = el('button', 'fm-btn', '\u2192 Go');
+        bar.append(inp, go);
+
+        var frame = document.createElement('iframe');
+        frame.className = 'lantern-frame';
+        frame.sandbox = 'allow-script allow-same-origin allow-popus';
+
+        var homepage = '<!DOCTYPE html><html><head><style>'
+             + '*{box-sizing:border-box;margin:0}html,body{height:100%}'
+                    + 'body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;'
+        + 'padding:32px 20px;font-family:Georgia,serif;color:#e9e2d2;text-align:center;overflow:auto;'
+                  + 'background:radial-gradient(ellipse at 15% 8%,rgba(30,79,138,.30),transparent 50%),'
+               + 'radial-gradient(ellipse at 85% 12%,rgba(168,44,30,.22),transparent 50%),'
+            + 'repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 2px,transparent 2px 5px),'
+      + 'linear-gradient(180deg,#1b2742 0%,#0f1626 100%)}'
+            + 'body::before{content:"";position:fixed;top:0;left:0;right:0;height:5px;z-index:2;'
+         + 'background:linear-gradient(90deg,#1e4f8a 0 33.4%,#f4efe6 33.4% 66.7%,#b5342a 66.7% 100%)}'
+                      + '.cockade{width:46px;height:46px;border-radius:50%;border:2px solid #c9a227;'
+             + 'background:conic-gradient(#1e4f8a 0 33.3%,#f4efe6 33.3% 66.6%,#b5342a 66.6% 100%);'
+                      + 'box-shadow:0 0 18px rgba(201,162,39,.35)}'
+            + 'h1{font-size:clamp(28px,5vw,44px);letter-spacing:.22em;color:#c9a227;'
+                + 'text-shadow:0 2px 0 rgba(0,0,0,.5)}'
+                  + '.slogan{font-style:italic;font-size:13px;letter-spacing:.14em;opacity:.75}'
+      + 'form{display:flex;gap:8px;width:min(520px,94%)}'
+            + 'input{flex:1;min-width:0;padding:11px 18px;border-radius:24px;border:1px solid rgba(201,162,39,.45);'
+                + 'background:rgba(255,255,255,.07);color:#f4efe6;font:14px Georgia,serif;outline:none;'
+             + 'box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}'
+                + 'input::placeholder{color:rgba(233,226,210,.45);font-style:italic}'
+                + 'input:focus{border-color:#c9a227;box-shadow:0 0 0 3px rgba(201,162,39,.18),inset 0 2px 6px rgba(0,0,0,.35)}'
+      + 'button{padding:11px 20px;border-radius:24px;border:1px solid #8a6d14;cursor:pointer;'
+      + 'font:bold 13px Georgia,serif;letter-spacing:.06em;color:#211c16;'
+            + 'background:linear-gradient(180deg,#e8cf6a,#c9a227);'
+      + 'box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 6px rgba(0,0,0,.4)}'
+        + 'button:hover{filter:brightness(1.08)}'
+      + '.tiles{display:grid;grid-template-columns:repeat(4,minmax(118px,150px));gap:14px}'
+      + '@media(max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}'
+               + '.tile{display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px 10px 14px;'
+            + 'text-decoration:none;color:#e9e2d2;border:1px solid rgba(201,162,39,.30);border-radius:9px;'
+      + 'background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));'
+      + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 4px 12px rgba(0,0,0,.35);'
+      + 'transition:transform .12s,border-color .12s,box-shadow .12s}'
+      + '.tile:hover{transform:translateY(-3px);border-color:#c9a227;'
+            + 'box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 14px rgba(201,162,39,.18)}'
+      + '.tile .ico{font-size:2rem}.tile .lbl{font-size:12px;opacity:.8}'
+      + '</style></head><body>'
+            + '<div class="cockade"></div>'
+      + '<h1>La Lanterne</h1>'
+      + '<p class="slogan">Your window to the world</p>'
+      + '<form><input id="hs" placeholder="Search Wikipedia...">'
+    + '<button onclick="var q=document.getElementById(\'hs\').value;'
+        + 'if(q)location.href=\'https://en.wikipedia.org/w/index.php?search=\'+encodeURIComponent(q);return false">Search</button></form>'
+      + '<div class="tiles">'
+            + '<a class="tile" href="https://en.wikipedia.org/wiki/French_Revolution"><div class="ico">\uD83C\uDFDB\uFE0F</div><div class="lbl">French Revolution</div></a>'
+      + '<a class="tile" href="https://en.wikipedia.org/wiki/History_of_France"><div class="ico">\uD83D\uDCDC</div><div class="lbl">History of France</div></a>'
+        + '<a class="tile" href="https://en.wikipedia.org/wiki/La_Marseillaise"><div class="ico">\uD83C\uDFB5</div><div class="lbl">La Marseillaise</div></a>'
+        + '<a class="tile" href="https://en.wikipedia.org/wiki/Napoleon"><div class="ico">\u2694\uFE0F</div><div class="lbl">Napoleon</div></a>'
+      + '</div></body></html>';
+// this shit took me the fuck out 
+      frame.srcdoc = homePage
+
+      var nav = function () {
+        var url = inp.value.trim();
+        if (!url) return;
+        if (!url.startsWith('https')) url = 'https://' + url;
+        frame.removeAttribute('srcdocs');
+        frame.src = url;
+      };
+
+      go.addEventListener('click', nav);
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') nav();
+      });
+      r.append(bar, frame);
+      return r;
+    }    
+};
+
+function addDesktopApps () {
+    var bureau = FS.get('bureau');
+    if (!bureau || !bureau.children) return;
+    var exist = new Set(bureau.children.map(function(c) {
+        return c.name;
+    }));
+    [
+        {name: 'The Terminal', target: 'terminal'},
+        {name: 'The Fanfare', target: 'fanfare'},
+        {name:'The Lantern', target:'lantern'}
+    ].forEach(function(a) {
+        if (!exist.has(a.name)) {
+            bureau.children.push({
+                id: 'a'  + (FS.nextId++), name: a.name, type: 'app', target: a.target
+            });
+        }
+    });
+}
+
+addDesktopApps();
+WebOS2.init();
+OS.renderDesktop();
+}) ();
