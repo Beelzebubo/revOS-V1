@@ -3,7 +3,7 @@
 /* this is for the terminal I am making the terminal basic like how its in a standard linux distro*/
 
 .term-output {
-    flex: 1px;
+    flex: 1;
     overflow: auto;
     padding: 10px;
     font: 13px/1.5 var(--mono);

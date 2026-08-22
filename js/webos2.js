@@ -5,23 +5,31 @@
 (function() {
     'use strict';
 
-var H = 'bereau';
+var H = 'bureau';
 
 FS.mkfile = function(pid, name, content){
     var p = this.get(pid);
     if (!p || !p.children) return null;
-    var f = { id: 'f' + (this.nextId++), name: name, type: 'file', content: 'content' || ''};
+    var f = { id: 'f' + (this.nextId++), name: name, type: 'file', content: content || ''};
     p.children.push(f);
     this._map.set(f.id, f);
     this.emit ();
     return f;
 };
+
+FS.write = function(id, content) {
+    var n = this.get(id);
+    if (!n || n.type !== 'file') return false;
+    n.content = content;
+    this.emit();
+    return true;
+}
 // this is for custom prompt (the deault one is shitty like really shitty)
 function customPrompt(title, placeholder, defaultVal, callback) {
     var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed; insert:0; z-index:99999; display:flex; align:center; justify-content:center; background:rgba(0,0,0,.5';
+    overlay.style.cssText = 'position:fixed; inset:0; z-index:99999; display:flex; align:center; justify-content:center; background:rgba(0,0,0,.5)';
     var panel = document.createElement('div');
-    panel.style.cssText = 'background:var(--win); border:1px; solid var(--border); border-radius:9px; padding:20px; min-width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.4)';
+    panel.style.cssText = 'background:var(--win); border:1px solid var(--border); border-radius:9px; padding:20px; min-width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.4)';
     
     var h = document.createElement('h3');
     h.textContent = title;
@@ -38,10 +46,10 @@ function customPrompt(title, placeholder, defaultVal, callback) {
     });
 
     var btns = document.createElement('div');
-    btns.style.cssText = 'display:felx; gap:8px; margin-top:14px; justify-content:flex-end';
+    btns.style.cssText = 'display:flex; gap:8px; margin-top:14px; justify-content:flex-end';
     var cancelBtn =  document.createElement('button');
     cancelBtn.textContent = 'Cancel';
-    cancelBtn.style.csstext = 'padding:6px 14px; border:1px solid var(--border); border-radius:5px; background:var(--win); color:var(--fg); cursor:pointer; font:12px var(--serif)';
+    cancelBtn.style.cssText = 'padding:6px 14px; border:1px solid var(--border); border-radius:5px; background:var(--win); color:var(--fg); cursor:pointer; font:12px var(--serif)';
     cancelBtn.addEventListener('click', function(){ callback(null);
         overlay.remove();
     });
@@ -66,9 +74,9 @@ function customPrompt(title, placeholder, defaultVal, callback) {
 
 function customConfirm(title, message, callback) {
     var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed; inser:0; z-index:99999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.5)';
+    overlay.style.cssText = 'position:fixed; inset:0; z-index:99999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.5)';
     var panel = document.createElement('div');
-    panel.style.cssText = 'background:var(--win); border:1 px solid var(--border); border-radius:9px; padding:20px; min-width:32px; mad-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.4);';
+    panel.style.cssText = 'background:var(--win); border:1px solid var(--border); border-radius:9px; padding:20px; min-width:320px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,.4);';
     var h = document.createElement('h3');
     h.textContent = title;
     h.style.cssText = 'margin:0 0 8px; font-size:15px; color:var(--red); letter-spacing:.06em; font-family:var(--serif)';
@@ -77,9 +85,9 @@ function customConfirm(title, message, callback) {
     p.style.cssText = 'margin:0 0 14px; font:13px var(--serif); color:var(--fg); line-height:1.5';
     var btns = document.createElement ('div');
     btns.style.cssText = 'display:flex; gap:8px; justify-content:flex-end';
-    var boBtn = document.createElement('button');
+    var noBtn = document.createElement('button');
     noBtn.textContent = 'No';
-    noBtns.style.cssText = 'padding:6px 14px; border:1px solid var(--border); border-radius:5px; background:var(--win); color:var(--fg); cursor:pointer; font:12px var(--serif)';
+    noBtn.style.cssText = 'padding:6px 14px; border:1px solid var(--border); border-radius:5px; background:var(--win); color:var(--fg); cursor:pointer; font:12px var(--serif)';
     noBtn.addEventListener('click', function() {
         callback (false);
         overlay.remove ();
@@ -117,7 +125,7 @@ document.getElementById('desktop').addEventListener('contextmenu', function(e){
             });
         }]
     ]);
-}, ture);
+}, true);
 
 var _origCtxMenu = OS.ctxMenu.bind(OS);
 OS.ctxMenu = function(x, y, node){
@@ -138,26 +146,26 @@ OS.ctxMenu = function(x, y, node){
 
 //virtual desktop like with windows win + ctrl + arrow well not exactly with hot keys but buttons cause umm not happening with hotkeys 
 var WebOS2 = {
-    desktop: ['Liberty', 'Equality', 'Faternity'],
-    current = 0,
+    desktops: ['Liberty', 'Equality', 'Fraternity'],
+    current : 0,
     init: function() {
         var bar = document.getElementById ('taskbar');
         var sw = el('div');
         sw.id = 'desktop-switcher';
         var icons = ['\u{1F3DB}\uFE0F', '\u2696\uFE0F', '\u{1F91D}'];  // These are codes for the icons I searched how to get icons in js and I got this well it works so meh
         var self = this;
-        this.desktop.forEach(function(name, i){
+        this.desktops.forEach(function(name, i){
             var b = document.createElement('button');
             b.textContent = icons [i];
             b.title = name;
             b.addEventListener('click', function() {
-                self.switch(i); 
+                self.switchTo(i); 
             });
             if ( i === 0) b.className = 'active';
             sw.appendChild(b);
         });
-        var tri = document.getElementById('tricolor');
-        if(tri) tri.parentNode.insertBelow(sw, tri.nextSibling);
+        var tri = document.getElementById('tricolore');
+        if(tri) tri.parentNode.insertBefore(sw, tri.nextSibling);
     },
     switchTo: function(i) {
         this.current = i; this.updatevisibility(); 
@@ -177,7 +185,7 @@ var WebOS2 = {
     }
 };
 
-    var _origOpenWindow = OS.openWindow.bind(OS);g
+    var _origOpenWindow = OS.openWindow.bind(OS);
     OS.openWindow = function(a) {
         var prev = OS.wid;
         _origOpenWindow(a);
@@ -186,7 +194,7 @@ var WebOS2 = {
     };
 
     var _origRT = OS.renderTaskbar.bind(OS);
-    OS.renerTaskbar = function() { _origRT(); WebOS2.updatevisibility();};
+    OS.renderTaskbar = function() { _origRT(); WebOS2.updatevisibility();};
 
 
     //text tile editor just text file currently maybe will add more later
@@ -210,7 +218,7 @@ var WebOS2 = {
                     });
                     bar.append(save, del);
                     var ta = document.createElement('textarea');
-                    ta.calssName = 'editor-area';
+                    ta.className = 'editor-area';
                     ta.value = n.content || '';
                     r.append(bar, ta);
                     return r;
@@ -221,14 +229,14 @@ var WebOS2 = {
 
     var _origBuild = FileManager.build.bind(FileManager);
     FileManager.build = function() {
-        var root = origBuild();
+        var root = _origBuild();
         var tb = root.querySelector('.fm-toolbar');
         if (tb) {
             var btn = el('button', 'fm-btn', '\uD83D\uDCC4 +');
             btn.addEventListener('click', function() {
                 customPrompt('New File', 'File name (.txt)...', '', function(name){
                     if (name){
-                        var fname = name.endsWith('txt') ? name : name + '.txt';
+                        var fname = name.endsWith('.txt') ? name : name + '.txt';
                         if (FS.mkfile(FileManager.current, fname, ''))
                             FileManager.render();
                     }
@@ -240,8 +248,8 @@ var WebOS2 = {
     };
 
     var APP_ICONS = {
-        dosssier: '\uD83D\uDCC1', assignat: '\uD83E\uDE99', comite:'\uD83D\uDCDC',
-        terminal:'\u2328\uFE0F', fanfare:'\uD83C\uDF85', lantern:'\uD83C\uDF10'
+        dossier: '\uD83D\uDCC1', assignat: '\uD83E\uDE99', comite:'\uD83D\uDCDC',
+        terminal:'\u2328\uFE0F', fanfare:'\uD83C\uDFB5', lantern:'\uD83C\uDF10'
     };
 
     var _origRD = OS.renderDesktop.bind(OS);
@@ -254,7 +262,7 @@ var WebOS2 = {
             it.draggable = true;
             var icon;
             if (n.type === 'folder') icon = '\uD83D\uDCC1';
-            else if (n.type === 'app') icon = APP_ICONS(n.target) || '\uD83E\uDD42';
+            else if (n.type === 'app') icon = APP_ICONS[n.target] || '\uD83E\uDD42';
             else icon = '\uD83D\uDCC4';
             var dn = el('div', 'dn');
             dn.textContent = n.name;
@@ -266,13 +274,13 @@ var WebOS2 = {
                 it.classList.add('sel');
             });
 
-            it.addEventListener('dbclick', function() {OS.open(n);});
+            it.addEventListener('dblclick', function() {OS.open(n);});
             it.addEventListener('contextmenu', function(e) {e.preventDefault();
                 OS.ctxMenu(e.clientX, e.clientY, n);
             });
             it.addEventListener('dragstart', function(e) {
                 e.dataTransfer.setData('text/plain', n.id);
-                e.dataTransfer.effectAllowed = 'move'; OS.dragid = n.id;
+                e.dataTransfer.effectAllowed = 'move'; OS.dragId = n.id;
             });
             box.appendChild(it);
         });
@@ -326,10 +334,10 @@ var WebOS2 = {
                 });
             },
             pwd: function(){
-                return '/' + cmd; 
+                return '/' + cwd; 
             },
             clear : function(){
-                out.textContext = '';
+                out.textContent = '';
             },
             ls : function() {
                 var items = FS.children(cwd);
@@ -374,12 +382,12 @@ var WebOS2 = {
             },
             echo: function(args){ return args.join(' ');},
             open: function(args){
-                if (!args.lenght) return 'open: missing operand (how do you mess up this bad?';
+                if (!args.length) return 'open: missing operand (how do you mess up this bad?';
                 var t = resolve(args[0]);
                 var n = FS.get(t);
                 if (!n) {
                     var app = Object.values(Apps).find(function(a) {
-                        return a.name.toLowerCase().include(args[0].toLowerCase());
+                        return a.name.toLowerCase().includes(args[0].toLowerCase());
                     });
                     if (app) { OS.openApp(app.id); 
                         return '';
@@ -402,10 +410,7 @@ var WebOS2 = {
             var cmd = parts[0];
             var args = parts.slice(1);
             var fn = CMDS[cmd];
-            if (fn) {
-                var result = fn(args);
-                if (results) print(result);
-            }
+            if (fn) { var result = fn(args); if (result) print(result);}
             else print('revOS' + cmd + ': command not found. type "help" for available commands.');
             prompt.textContent = ps();
         });
@@ -427,23 +432,23 @@ var REVO_MUSIC =  [
     { title: 'La Marseillaise (FR/EN)', id:'PIQSEq6tEVs'},
     { title: 'La Marseillaise- Mireille Mathieu', id: 'SIxOl1EraXA'},   //these code are form youtube https://www.youtube.com/watch?v=hDU4GB1PTxc&list=RDCLAK5uy_kmPRjHDECIcuVwnKsx2Ng7fyNgFKWNJFs&index=2  
     // the link above for example's id would be everything after ?v=hDU4GB1PTxc this was a pain to get from youtube.
-    {title: 'Cra Ira (It will be Fine', id: '-HgdeXdkdRo'},
-    {title: 'La Carmagnole', id:' u-tqxx2VrpI'}
-],
+    {title: 'Cra Ira (It will be Fine)', id: '-HgdeXdkdRo'},
+    {title: 'La Carmagnole', id:'u-tqxx2VrpI'}
+];
 var currentYTFrame = null;
 var currentPlayBtn = null;
 var fanfarePlayerContainer = null;
 
-function playVideo(videoID) {
+function playVideo(videoId) {
     if (currentYTFrame) { currentYTFrame.remove();
         currentYTFrame = null;
     }
-    if (fanfarePlayerContainer) return;
+    if (!fanfarePlayerContainer) return;
 
     var frame = document.createElement('iframe');
-    frame.src = 'https://youtube.com/embed/' + videoId + '? autoplay=1';
+    frame.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
     frame.allow ='autoplay; encrypted-media';
-    frame.style.cssText = 'width:100%; height:100%; border:none; border:radius:6px';
+    frame.style.cssText = 'width:100%; height:100%; border:none; border-radius:6px';
     fanfarePlayerContainer.innerHTML = '';
     fanfarePlayerContainer.appendChild(frame);
     fanfarePlayerContainer.style.display = 'block';
@@ -459,7 +464,7 @@ function stopVideo() {  //name already implies what its for no?
         fanfarePlayerContainer.style.display = 'none';}
     }
 
-    function extractVidoeId(input) {  //this is for the search function where you enter the name of the song only
+    function extractVideoId(input) {  //this is for the search function where you enter the name of the song only
         if(!input) return null;
         input = input.trim();
         if (/^[\w-]{11}$/.test(input)) return input;
@@ -468,7 +473,7 @@ function stopVideo() {  //name already implies what its for no?
     }
 
     Apps.fanfare = {
-        id: 'fanfare', name: 'The Fanfare', icon: '\uD83C\uDF85', w: 480, h:440,
+        id: 'fanfare', name: 'The Fanfare', icon: '\uD83C\uDFB5', w: 480, h:440,
         build: function () {
             var r = el('div', 'app');
             r.appendChild(el('header', 'masthead', '<h2>THE FANFARE</h2><span>Revolutionary music and more</span>'));
@@ -514,16 +519,16 @@ function stopVideo() {  //name already implies what its for no?
             btn.addEventListener('click', function(){
                 var allBtns = list.querySelectorAll('.fm-btn');
                 allBtns.forEach(function(b) {
-                    b.textContnet = '\u25B6';
+                    b.textContent = '\u25B6';
                     b.classList.remove('playing');
                 });
                 playVideo(song.id);
-                btn.textContnet = '\u23F8';
+                btn.textContent = '\u23F8';
                 btn.classList.add('playing');
-                currentPlayingBtn = btn;
+                currentPlayBtn = btn;
             });
             row.append(title, btn);
-            list.appenChild(row);
+            list.appendChild(row);
         });
         r.appendChild(list);
             return r;
@@ -538,7 +543,7 @@ function stopVideo() {  //name already implies what its for no?
         r.style.flexDirection = 'column';
 
         // now the url bar
-        var bar = el('dviv', 'lantern-bar');
+        var bar = el('div', 'lantern-bar');
         var inp = document.createElement('input');
         inp.placeholder = 'Search or enter URl...';
         inp.className = 'lantern-url';
@@ -547,7 +552,7 @@ function stopVideo() {  //name already implies what its for no?
 
         var frame = document.createElement('iframe');
         frame.className = 'lantern-frame';
-        frame.sandbox = 'allow-script allow-same-origin allow-popus';
+        frame.sandbox = 'allow-scripts allow-same-origin allow-popups';
 
         var homepage = '<!DOCTYPE html><html><head><style>'
              + '*{box-sizing:border-box;margin:0}html,body{height:100%}'
@@ -605,8 +610,8 @@ function stopVideo() {  //name already implies what its for no?
       var nav = function () {
         var url = inp.value.trim();
         if (!url) return;
-        if (!url.startsWith('https')) url = 'https://' + url;
-        frame.removeAttribute('srcdocs');
+        if (!url.startsWith('http')) url = 'https://' + url;
+        frame.removeAttribute('srcdoc');
         frame.src = url;
       };
 
