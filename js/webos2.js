@@ -554,7 +554,7 @@ function stopVideo() {  //name already implies what its for no?
         frame.className = 'lantern-frame';
         frame.sandbox = 'allow-scripts allow-same-origin allow-popups';
 
-        var homepage = '<!DOCTYPE html><html><head><style>'
+        var homePage = '<!DOCTYPE html><html><head><style>'
              + '*{box-sizing:border-box;margin:0}html,body{height:100%}'
                     + 'body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;'
         + 'padding:32px 20px;font-family:Georgia,serif;color:#e9e2d2;text-align:center;overflow:auto;'
